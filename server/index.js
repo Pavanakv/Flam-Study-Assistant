@@ -14,8 +14,25 @@ app.post("/api/generate", async (req, res) => {
   if (input.length > 8000) return res.status(400).json({ error: "Input too long (max 8000 characters)." });
   if (!process.env.GROQ_API_KEY) return res.status(500).json({ error: "Server is missing GROQ_API_KEY." });
 
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 25000);
+
+  const messages = [
+    { role: "system", content: SYSTEM },
+    { role: "user", content: input },
+  ];
+  const repair = req.body?.repair;
+  if (
+    repair &&
+    typeof repair.previous === "string" && repair.previous.trim() &&
+    typeof repair.problem === "string"
+  ) {
+    messages.push(
+      { role: "assistant", content: repair.previous.slice(0, 20000) },
+      { role: "user", content: `Your last reply was not usable: ${repair.problem.slice(0, 200)} Return ONLY the corrected JSON in the required shape.` }
+    );
+  }
 
   try {
     const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -28,10 +45,7 @@ app.post("/api/generate", async (req, res) => {
       body: JSON.stringify({
         model: process.env.GROQ_MODEL || "openai/gpt-oss-20b",
         response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "user", content: input },
-        ],
+        messages: messages,
       }),
     });
     if (!r.ok) {

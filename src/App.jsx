@@ -9,16 +9,32 @@ import Quiz from "./components/Quiz";
 export default function App() {
   const { status, cards, error, dropped, resultId, generate } = useGenerate();
   const [mode, setMode] = useState("flashcards");
+  const [sim, setSim] = useState("");
   const lastInput = useRef("");
 
   const run = (text) => {
     lastInput.current = text;
-    generate(text);
+    generate(text, sim || undefined);
   };
 
   return (
     <main className="app">
       <h1>Study Assistant</h1>
+            {import.meta.env.DEV && (
+        <label className="muted small">
+          Simulate:{" "}
+          <select value={sim} onChange={(e) => setSim(e.target.value)}>
+            <option value="">none (real model)</option>
+            <option value="empty">empty reply</option>
+            <option value="malformed">malformed JSON</option>
+            <option value="shape">wrong shape</option>
+            <option value="repair-demo">bad first reply, repair works</option>
+            <option value="slow">slow (6s)</option>
+            <option value="fail">API failure</option>
+            <option value="timeout">timeout</option>
+          </select>
+        </label>
+      )}
       <PromptInput onSubmit={run} disabled={status === "loading"} />
 
       {status === "idle" && (

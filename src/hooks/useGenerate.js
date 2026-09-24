@@ -8,7 +8,7 @@ export function useGenerate() {
   const requestId = useRef(0);
   const controllerRef = useRef(null);
 
-  async function generate(input) {
+  async function generate(input,simulate) {
     const id = ++requestId.current; // newest request owns the UI
     controllerRef.current?.abort(); // cancel older in-flight request
     const controller = new AbortController();
@@ -20,7 +20,7 @@ export function useGenerate() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input }),
+        body: JSON.stringify({ input,simulate  }),
         signal: controller.signal,
       });
       const body = await res.json().catch(() => ({}));
@@ -34,7 +34,7 @@ export function useGenerate() {
         const retryRes = await fetch("/api/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ input, repair: { previous: body.content, problem: parsed.message } }),
+          body: JSON.stringify({ input, simulate, repair: { previous: body.content, problem: parsed.message } }),
           signal: controller.signal,
         });
         const retryBody = await retryRes.json().catch(() => ({}));

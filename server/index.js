@@ -14,6 +14,17 @@ app.post("/api/generate", async (req, res) => {
   if (input.length > 8000) return res.status(400).json({ error: "Input too long (max 8000 characters)." });
   if (!process.env.GROQ_API_KEY) return res.status(500).json({ error: "Server is missing GROQ_API_KEY." });
 
+    // Dev-only failure simulation for demos and testing (ignored in production)
+  const sim = process.env.NODE_ENV === "production" ? null : req.body?.simulate;
+  const isRepair = Boolean(req.body?.repair);
+  if (sim === "empty") return res.json({ content: "" });
+  if (sim === "malformed") return res.json({ content: "sure! {oops" });
+  if (sim === "shape") return res.json({ content: '{"foo":1}' });
+  if (sim === "repair-demo" && !isRepair) return res.json({ content: "sure! {oops" });
+  if (sim === "fail") return res.status(502).json({ error: "Model API failed (simulated)." });
+  if (sim === "timeout") return res.status(504).json({ error: "The model took too long." });
+  if (sim === "slow") await new Promise((r) => setTimeout(r, 6000));
+
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 25000);

@@ -1,12 +1,19 @@
 import { useRef, useState } from "react";
 import { parseResult } from "../lib/validateResult";
+import { loadSession, saveSession } from "../lib/storage";
 
 const CLIENT_TIMEOUT_MS = 60000;
 
 export function useGenerate() {
-  const [state, setState] = useState({ status: "idle", cards: [], error: null, dropped: 0, resultId: 0 });
+    const [state, setState] = useState(() => {
+    const saved = loadSession();
+    return saved
+      ? { status: "success", cards: saved.cards, error: null, dropped: 0, resultId: 0 }
+      : { status: "idle", cards: [], error: null, dropped: 0, resultId: 0 };
+  });
   const requestId = useRef(0);
   const controllerRef = useRef(null);
+  
 
   async function generate(input,simulate) {
     const id = ++requestId.current; // newest request owns the UI
@@ -42,6 +49,7 @@ export function useGenerate() {
         if (retryRes.ok) parsed = parseResult(retryBody.content);
       }
       if (!parsed.ok) return setState((s) => ({ ...s, status: "error", cards: [], error: parsed.message, dropped: 0 }));
+      saveSession(input, parsed.cards);
       setState({ status: "success", cards: parsed.cards, error: null, dropped: parsed.dropped, resultId: id });
     } catch (e) {
       if (id !== requestId.current) return; // superseded, not an error

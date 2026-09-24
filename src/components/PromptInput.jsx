@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-export default function PromptInput({ onSubmit, disabled }) {
-  const [text, setText] = useState("");
+export default function PromptInput({ onSubmit, disabled ,initialValue = "" }) {
+  const [text, setText] = useState(initialValue);
 
   const submit = (e) => {
     e.preventDefault();

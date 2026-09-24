@@ -5,12 +5,14 @@ import LoadingState from "./components/LoadingState";
 import ErrorState from "./components/ErrorState";
 import Flashcards from "./components/Flashcards";
 import Quiz from "./components/Quiz";
+import { loadSession } from "./lib/storage";
 
 export default function App() {
   const { status, cards, error, dropped, resultId, generate } = useGenerate();
   const [mode, setMode] = useState("flashcards");
   const [sim, setSim] = useState("");
-  const lastInput = useRef("");
+  const [restoredInput] = useState(() => loadSession()?.input ?? "");
+  const lastInput = useRef(restoredInput);
 
   const run = (text) => {
     lastInput.current = text;
@@ -35,7 +37,7 @@ export default function App() {
           </select>
         </label>
       )}
-      <PromptInput onSubmit={run} disabled={status === "loading"} />
+      <PromptInput onSubmit={run} disabled={status === "loading"} initialValue={restoredInput} />
 
       {status === "idle" && (
         <div className="panel center muted">Paste some notes above to get flashcards and a quiz.</div>

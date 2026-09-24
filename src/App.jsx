@@ -51,7 +51,7 @@ export default function App() {
             <button role="tab" aria-selected={mode === "flashcards"} className={mode === "flashcards" ? "active" : ""} onClick={() => setMode("flashcards")}>Flashcards</button>
             <button role="tab" aria-selected={mode === "quiz"} className={mode === "quiz" ? "active" : ""} onClick={() => setMode("quiz")}>Quiz</button>
           </div>
-          {/* key resets child state whenever a new result arrives */}
+          
           {mode === "flashcards"
             ? <Flashcards key={resultId} cards={cards} />
             : <Quiz key={resultId} cards={cards} />}

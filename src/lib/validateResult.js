@@ -1,9 +1,9 @@
-// Turns raw model text into safe, validated cards, or a described failure.
+
 export function parseResult(raw) {
   if (typeof raw !== "string" || !raw.trim())
     return { ok: false, kind: "empty", message: "The model returned nothing." };
 
-  // Models sometimes wrap JSON in ```json fences even when told not to.
+  
   const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
 
   let data;
@@ -16,7 +16,7 @@ export function parseResult(raw) {
   if (!Array.isArray(data?.cards) || data.cards.length === 0)
     return { ok: false, kind: "shape", message: "The response was missing cards." };
 
-  // Keep valid cards, drop broken ones instead of failing everything.
+  
   const cards = data.cards
     .filter(
       (c) =>

@@ -1,3 +1,5 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import express from "express";
 import "dotenv/config";
 
@@ -14,7 +16,7 @@ app.post("/api/generate", async (req, res) => {
   if (input.length > 8000) return res.status(400).json({ error: "Input too long (max 8000 characters)." });
   if (!process.env.GROQ_API_KEY) return res.status(500).json({ error: "Server is missing GROQ_API_KEY." });
 
-    // Dev-only failure simulation for demos and testing (ignored in production)
+  // Dev-only failure simulation for demos and testing (ignored in production)
   const sim = process.env.NODE_ENV === "production" ? null : req.body?.simulate;
   const isRepair = Boolean(req.body?.repair);
   if (sim === "empty") return res.json({ content: "" });
@@ -64,7 +66,7 @@ app.post("/api/generate", async (req, res) => {
       return res.status(502).json({ error: `Model API failed (${r.status}).` });
     }
     const data = await r.json();
-    // Raw text goes to the client; the client parses and validates it.
+    
     res.json({ content: data.choices?.[0]?.message?.content ?? "" });
   } catch (e) {
     const timedOut = e.name === "AbortError";
@@ -74,4 +76,11 @@ app.post("/api/generate", async (req, res) => {
   }
 });
 
-app.listen(3001, () => console.log("API server on http://localhost:3001"));
+if (process.env.NODE_ENV === "production") {
+  const dist = path.join(path.dirname(fileURLToPath(import.meta.url)), "../dist");
+  app.use(express.static(dist));
+  app.get("*", (req, res) => res.sendFile(path.join(dist, "index.html")));
+}
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log(`Server on http://localhost:${PORT}`));

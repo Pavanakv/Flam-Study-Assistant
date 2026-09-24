@@ -57,7 +57,6 @@ app.post("/api/generate", async (req, res) => {
       },
       body: JSON.stringify({
         model: process.env.GROQ_MODEL || "openai/gpt-oss-20b",
-        response_format: { type: "json_object" },
         messages: messages,
       }),
     });
